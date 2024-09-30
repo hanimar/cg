@@ -40,21 +40,23 @@ function getFields(o) {
 
 let tiedFields = []
 
-function update(ignoredColor) {
-	if (ignoredColor != "rgb") {
+function update(ignoredColor, ignoredInput) {
+	if (ignoredColor !== "rgb") {
 		rgb.fromRgb(globalColor)
 	}
-	if (ignoredColor != "hsv") {
+	if (ignoredColor !== "hsv") {
 		hsv.fromRgb(globalColor)
 	}
-	if (ignoredColor != "cmyk") {
+	if (ignoredColor !== "cmyk") {
 		cmyk.fromRgb(globalColor)
 	}
 	for (let o of tiedFields) {
-		if (o["object"]["colorName"] === "rgb") {
-			o["input"].value = Math.round(parseFloat(o["object"][o["fieldName"]]))
-		} else {
-			o["input"].value = parseFloat(o["object"][o["fieldName"]]).toFixed(2)
+		if (o["input"].id !== ignoredInput.id) {
+			if (o["object"].colorName === "rgb") {
+				o["input"].value = Math.round(parseFloat(o["object"][o["fieldName"]]))
+			} else {
+				o["input"].value = parseFloat(o["object"][o["fieldName"]]).toFixed(2)
+			}
 		}
 	}
 }
@@ -73,7 +75,7 @@ function getInput(color, fieldName) {
 		}
 		color[fieldName] = parseFloat(e.target.value)
 		globalColor.fromRgb(color.toRgb())
-		update(color.colorName)
+		update(color.colorName, input)
 	})
 	input.step = slider[2]
 	let label = document.createElement("label")
@@ -88,7 +90,7 @@ function getInput(color, fieldName) {
 	docSlider.addEventListener("input", e => {
 		color[fieldName] = parseFloat(e.target.value).toFixed(2)
 		globalColor.fromRgb(color.toRgb())
-		update(color.colorName)
+		update(color.colorName, docSlider)
 	})
 	docSlider.value = slider[0]
 	let div = document.createElement("div")
