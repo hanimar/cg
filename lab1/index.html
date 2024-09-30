@@ -1,6 +1,80 @@
 <!DOCTYPE html>
-<head>
+<html>
+	<head>
+		<script type="module" src="./javascript/script.js" defer></script>
+		<style>
+			html {
+				color: #cdd6f4;
+				background-color: #1e1e2e;
+				font-size: 16;
+				font-family: "JetBrainsMono Nerd Font";
+			}
+			input {
+				color: #cdd6f4;
+				background-color: #1e1e2e;
+				border: 1px solid #b4befe;
+				border-radius: 5px;
+			}
+			input[type="range"] {
+				appearance: none;
+				background-color: transparent;
+				width: 200px;
+				border: none;
+			}
+			input[type="range"]::-webkit-slider-runnable-track {
+				position: relative;
+				height: 8px;
+				background-color: #313244;
+				border-radius: 8px;
+			}
+			input[type="range"]::-moz-range-track {
+				position: relative;
+				height: 8px;
+				background-color: #313244;
+				border-radius: 8px;
+			}
+			input[type="range"]::-webkit-slider-thumb {
+				box-sizing: border-box;
+				appearance: none;
+				position: relative;
+				background-color: #b4befe;
+				border-radius: 8px;
+				width: 16px;
+				height: 16px;
+				top: 50%;
+				translate: 0 -50%;
+			}
+			input[type="range"]::-moz-range-thumb {
+				box-sizing: border-box;
+				appearance: none;
+				position: relative;
+				background-color: #b4befe;
+				border-radius: 8px;
+				width: 16px;
+				height: 16px;
+			}
+			.block {
+				background-color: #1e1e2e;
+				border-radius: 10px;
+				border: 1px solid #b4befe;
+				padding: 5px;
+			}
+		</style>
+	</head>
 	<body>
-		lab1
+		<div style="display: flex; flex-direction: column; gap: 5px; justify-content: center; align-items: center;">
+			<div>
+				<input type="color" id="selector"></input>
+			</div>
+			<div id="rgb" class="block">
+				<div style="text-align: center;">RGB</div>
+			</div>
+			<div id="hsv" class="block">
+				<div style="text-align: center;">HSV</div>
+			</div>
+			<div id="cmyk" class="block">
+				<div style="text-align: center;">CMYK</div>
+			</div>
+		</div>
 	</body>
-</head>
+</html>
