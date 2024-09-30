@@ -52,11 +52,7 @@ function update(ignoredColor, ignoredInput) {
 	}
 	for (let o of tiedFields) {
 		if (o["input"].id !== ignoredInput.id) {
-			if (o["object"].colorName === "rgb") {
-				o["input"].value = Math.round(parseFloat(o["object"][o["fieldName"]]))
-			} else {
-				o["input"].value = parseFloat(o["object"][o["fieldName"]]).toFixed(2)
-			}
+			o["input"].value = parseFloat(o["object"][o["fieldName"]])
 		}
 	}
 }
