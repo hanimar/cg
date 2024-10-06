@@ -40,6 +40,14 @@ function getFields(o) {
 
 let tiedFields = []
 
+function to16(col) {
+	let r = Number(col).toString(16)
+	if (r.length === 1) {
+		r = "0" + r
+	}
+	return r
+}
+
 function update(ignoredColor, ignoredInput) {
 	if (ignoredColor !== "rgb") {
 		rgb.fromRgb(globalColor)
@@ -55,6 +63,10 @@ function update(ignoredColor, ignoredInput) {
 			o["input"].value = parseFloat(o["object"][o["fieldName"]])
 		}
 	}
+	document.getElementById('selector').value = '#' +
+        to16(globalColor.r) +
+        to16(globalColor.g) +
+        to16(globalColor.b)
 }
 
 function getInput(color, fieldName) {
@@ -117,3 +129,14 @@ function getInfo(color) {
 document.getElementById("rgb").appendChild(getInfo(rgb))
 document.getElementById("hsv").appendChild(getInfo(hsv))
 document.getElementById("cmyk").appendChild(getInfo(cmyk))
+
+document.getElementById("selector").addEventListener(
+	"input",
+	value => {
+		let color = value.target.value
+		globalColor.r = parseInt(color.substring(1, 3), 16)
+		globalColor.g = parseInt(color.substring(3, 5), 16)
+		globalColor.b = parseInt(color.substring(5, 7), 16)
+		update(globalColor, {id: undefined})
+	}
+)
