@@ -105,7 +105,7 @@ class Grid {
 				if (this._algo == Algo.Bresehnam) {
 					this._rendering = bresenhamAlgorithm(self._manuallyClicked[0], self._manuallyClicked[1], this._sleepTime)
 				} else if (this._algo == Algo.Step) {
-					this._rendering = drawLineBySteps(self._manuallyClicked[0], self._manuallyClicked[1], this._sleepTime, this._step)
+					this._rendering = drawLineBySteps(self._manuallyClicked[0], self._manuallyClicked[1], this._sleepTime)
 				} else if (this._algo == Algo.DDA) {
 					this._rendering = ddaAlgorithm(self._manuallyClicked[0], self._manuallyClicked[1], this._sleepTime)
 				} else if (this._algo == Algo.Circle) {
@@ -186,13 +186,6 @@ class Grid {
 		this._sleepTime = value
 	}
 
-	async setStep(value) {
-		if (this._rendering !== undefined) {
-			await this._rendering
-		}
-		this._step = value
-	}
-
 	useBresenham() {
 		this._algo = Algo.Bresehnam
 	}
@@ -213,7 +206,6 @@ class Grid {
 	_renderingContext
 
 	_sleepTime = 100
-	_step = 0.1
 	_algo = Algo.Step
 }
 
@@ -225,32 +217,58 @@ function timeout(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function drawLineBySteps(start, end, sleepTime = 100, step = 0.01) {
-	if (start.x === end.x) {
-		if (start.y > end.y) {
-			return drawLineBySteps(end, start, sleepTime, step)
+async function drawLineBySteps(start, end, sleepTime = 100) {
+	let dx = Math.abs(end.x - start.x)
+	let dy = Math.abs(end.y - start.y)
+	if (dy > dx) {
+		let sx = start.y
+		let ex = end.y
+		let sy = start.x
+		let ey = end.x
+		if (end.y < start.y) {
+			let tx = sx
+			sx = ex
+			ex = tx
+
+			let ty = sy
+			sy = ey
+			ey = ty
 		}
-		for (let i = start.y; i <= end.y; ++i) {
+		let dy = ey - sy
+		let dx = ex - sx
+		let k = dy / dx
+		let b = sy
+		function comp(i) {
+			return Math.floor(b + k * (i - sx))
+		}
+		for (let i = sx;i < ex;++i) {
+			grid.setPixel(comp(i), i)
 			await timeout(sleepTime)
-			grid.setPixel(start.x, i)
-		}
-		return;
-	}
-	const dx = end.x - start.x
-	const dy = end.y - start.y
-	const k = dy / dx
-	const b = (end.x * start.y - start.x * end.y) / dx
-	const draw = async x => {
-		grid.setPixel(Math.floor(x), Math.floor(k * x + b))
-		await timeout(sleepTime * step)
-	}
-	if (start.x < end.x) {
-		for (let i = start.x; i < end.x; i += step) {
-			await draw(i)
 		}
 	} else {
-		for (let i = start.x; i > end.x; i -= step) {
-			await draw(i)
+		let sx = start.x
+		let ex = end.x
+		let sy = start.y
+		let ey = end.y
+		if (end.x < start.x) {
+			let tx = sx
+			sx = ex
+			ex = tx
+
+			let ty = sy
+			sy = ey
+			ey = ty
+		}
+		let dy = ey - sy
+		let dx = ex - sx
+		let k = dy / dx
+		let b = sy
+		function comp(i) {
+			return Math.floor(b + k * (i - sx))
+		}
+		for (let i = sx;i < ex;++i) {
+			grid.setPixel(i, comp(i))
+			await timeout(sleepTime)
 		}
 	}
 }
@@ -366,43 +384,39 @@ async function ddaAlgorithm(start, end, sleepTime = 100) {
 }
 
 async function bresenhamAlgorithm(start, end, sleepTime = 100) {
-	let dx = end.x - start.x
-	if (dx === 0) {
-		return drawLineBySteps(start, end, sleepTime, 0.01)
+	let dx = Math.abs(end.x - start.x)
+	let dy = Math.abs(end.y - start.y)
+	if (dx == 0 || dy == 0) {
+		await drawLineBySteps(start, end, sleepTime)
+		return
 	}
-	let dy = end.y - start.y
-	let k = dy / dx
-	let translators = [new Translator()]
-	if (Math.abs(k) > 1) {
-		k = 1 / k
-		translators.push(new SwapCoordsTranslator())
-		dx = dy
+	let err = 0.0
+	let derr = (dy + 1) / (dx + 1)
+	let y = start.y
+	let diry = 1
+	if (start.y > end.y) {
+		diry = -1
 	}
-	if (k > 0 && dx < 0) {
-		translators.push(new MirrorTranslator(true, true))
-	} else if (k < 0) {
-		if (dx < 0) {
-			translators.push(new MirrorTranslator(true, false))
-		} else {
-			translators.push(new MirrorTranslator(false, true))
+	if (start.x < end.x) {
+		for (let x = start.x; x < end.x;++x) {
+			grid.setPixel(x, y)
+			await timeout(sleepTime)
+			err = err + derr
+			if (err >= 1.0) {
+				y = y + diry
+				err -= 1
+			}
 		}
-	}
-	let translator = new ComposeTranslator(translators)
-	let [startX, startY] = translator.translate(start.x, start.y)
-	let [endX, endY] = translator.translate(end.x, end.y)
-	dy = endY - startY
-	dx = endX - startX
-	let e = dy / dx - 0.5
-	let y = startY
-	for (let i = startX; i < endX; ++i) {
-		if (e >= 0) {
-			y += 1
-			e += dy / dx - 1
-		} else {
-			e += dy / dx
+	} else {
+		for (let x = start.x; x > end.x;--x) {
+			grid.setPixel(x, y)
+			await timeout(sleepTime)
+			err = err + derr
+			if (err >= 1.0) {
+				y = y + diry
+				err -= 1
+			}
 		}
-		grid.setPixel(...translator.reverse(i, y))
-		await timeout(sleepTime)
 	}
 }
 
@@ -424,11 +438,6 @@ async function updateSleepTime(e) {
 	document.getElementById('sleep-value').innerText = e.target.value + 'мс'
 }
 
-async function updateStep(e) {
-	await grid.setStep(parseFloat(e.target.value) / 100)
-	document.getElementById('step-value').innerText = e.target.value + '%'
-}
-
 async function updateAlgo(s) {
 	if (s.value === 'step') {
 		await grid.useByStep()
@@ -447,4 +456,3 @@ document.getElementById('x0').addEventListener('input', updateCoordsX)
 document.getElementById('y0').addEventListener('input', updateCoordsY)
 document.getElementById('scale-slider').addEventListener('input', updateScale)
 document.getElementById('sleep-slider').addEventListener('input', updateSleepTime)
-document.getElementById('step-slider').addEventListener('input', updateStep)
