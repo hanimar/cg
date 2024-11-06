@@ -273,60 +273,6 @@ async function drawLineBySteps(start, end, sleepTime = 100) {
 	}
 }
 
-class Translator {
-	translate(x, y) {
-		return [x, y]
-	}
-}
-
-class SwapCoordsTranslator extends Translator {
-	translate(x, y) {
-		return [y, x]
-	}
-}
-
-class MirrorTranslator extends Translator {
-	constructor(mirrorX, mirrorY) {
-		super()
-		this._x = mirrorX ? -1 : 1
-		this._y = mirrorY ? -1 : 1
-	}
-
-	_x
-	_y
-
-	translate(x, y) {
-		return [x * this._x, y * this._y]
-	}
-}
-
-class ComposeTranslator extends Translator {
-	constructor(translators) {
-		super()
-		this._translators = translators;
-	}
-
-	_translators
-
-	translate(x, y) {
-		let c = [x, y]
-		for (let t of this._translators) {
-			c = t.translate(...c)
-		}
-		return c
-	}
-
-	reverse(x, y) {
-		let c = [x, y]
-		this._translators.reverse()
-		for (let t of this._translators) {
-			c = t.translate(...c)
-		}
-		this._translators.reverse()
-		return c
-	}
-}
-
 async function circleAlgorithm(center, point, sleepTime = 100) {
 	let x1 = center.x;
 	let y1 = center.y;
