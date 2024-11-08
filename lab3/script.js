@@ -24,6 +24,19 @@ class Grid {
 	_manuallyClicked = []
 	_rendering = undefined
 
+	_clear() {
+		let toRemove = []
+		for (let created of this._createdPoints) {
+			let s = created.split(' ')
+			let x = parseInt(s[0])
+			let y = parseInt(s[1])
+			toRemove.push([x, y])
+		}
+		for (let p of toRemove) {
+			this.clearPixel(...p)
+		}
+	}
+
 	_drawGrid() {
 		this._renderingContext.clearRect(0, 0, this._canvas.width, this._canvas.height)
 		this._renderingContext.font = this._numbersSize.toString() + 'px serif'
@@ -241,7 +254,7 @@ async function drawLineBySteps(start, end, sleepTime = 100) {
 		function comp(i) {
 			return Math.floor(b + k * (i - sx))
 		}
-		for (let i = sx;i < ex;++i) {
+		for (let i = sx; i < ex; ++i) {
 			grid.setPixel(comp(i), i)
 			await timeout(sleepTime)
 		}
@@ -266,7 +279,7 @@ async function drawLineBySteps(start, end, sleepTime = 100) {
 		function comp(i) {
 			return Math.floor(b + k * (i - sx))
 		}
-		for (let i = sx;i < ex;++i) {
+		for (let i = sx; i < ex; ++i) {
 			grid.setPixel(i, comp(i))
 			await timeout(sleepTime)
 		}
@@ -344,7 +357,7 @@ async function bresenhamAlgorithm(start, end, sleepTime = 100) {
 		diry = -1
 	}
 	if (start.x < end.x) {
-		for (let x = start.x; x < end.x;++x) {
+		for (let x = start.x; x < end.x; ++x) {
 			grid.setPixel(x, y)
 			await timeout(sleepTime)
 			err = err + derr
@@ -354,7 +367,7 @@ async function bresenhamAlgorithm(start, end, sleepTime = 100) {
 			}
 		}
 	} else {
-		for (let x = start.x; x > end.x;--x) {
+		for (let x = start.x; x > end.x; --x) {
 			grid.setPixel(x, y)
 			await timeout(sleepTime)
 			err = err + derr
@@ -367,11 +380,11 @@ async function bresenhamAlgorithm(start, end, sleepTime = 100) {
 }
 
 async function updateCoordsX(e) {
-	await grid.setStart(parseInt(e.target.value), grid._y)	
+	await grid.setStart(parseInt(e.target.value), grid._y)
 }
 
 async function updateCoordsY(e) {
-	await grid.setStart(grid._x, parseInt(e.target.value))	
+	await grid.setStart(grid._x, parseInt(e.target.value))
 }
 
 async function updateScale(e) {
@@ -398,7 +411,42 @@ async function updateAlgo(s) {
 	}
 }
 
+async function test(_x0, _x1, _y0, _y1, iter, func, annotation) {
+	console.log(`${annotation} test...`)
+	function rand(mn, mx) {
+		return Math.round(Math.random() * (mx - mn) + mn)
+	}
+	let b = Date.now()
+	for (let i = 0; i < iter; ++i) {
+		let x0 = rand(_x0, _x1)
+		let y0 = rand(_y0, _y1)
+		let x1 = rand(_x0, _x1)
+		let y1 = rand(_y0, _y1)
+		if (x1 == x0 && y1 == y0) {
+			--i
+			continue
+		}
+		let start = {
+			x: x0,
+			y: y0
+		}
+		let end = {
+			x: x1,
+			y: y1
+		}
+		await func(start, end, 0)
+	}
+	let e = Date.now()
+	let diff = (e - b)
+	console.log(`${annotation}: ${diff / iter} ms`)
+}
+
 document.getElementById('x0').addEventListener('input', updateCoordsX)
 document.getElementById('y0').addEventListener('input', updateCoordsY)
 document.getElementById('scale-slider').addEventListener('input', updateScale)
 document.getElementById('sleep-slider').addEventListener('input', updateSleepTime)
+
+// test(0, 100, 0, 100, 100, bresenhamAlgorithm, "bresenham")
+// test(0, 100, 0, 100, 100, drawLineBySteps, "steps")
+// test(0, 100, 0, 100, 100, circleAlgorithm, "circle")
+// test(0, 100, 0, 100, 100, ddaAlgorithm, "dda")
